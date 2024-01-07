@@ -2,8 +2,10 @@ package com.anthonyhilyard.legendarytooltips.mixin;
 
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.function.BiConsumer;
 
 import com.anthonyhilyard.iceberg.util.Tooltips;
+import com.anthonyhilyard.legendarytooltips.LegendaryTooltips;
 import com.anthonyhilyard.legendarytooltips.Loader;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -27,6 +29,37 @@ import net.minecraft.world.item.ItemStack;
 @Mixin(ScreenOverlayImplFabric.class)
 public class RoughlyEnoughItemsScreenOverlayImplFabricMixin
 {
+	private static final BiConsumer<GuiGraphics, ItemStack> setTooltipStack;
+
+	static
+	{
+		BiConsumer<GuiGraphics, ItemStack> $setTooltipStack = ($1, $2) -> {};
+		try
+		{
+			// FIXME: Realistically this should go into Iceberg, or it should expose a stable API.
+			Field tooltipStackField = GuiGraphics.class.getDeclaredField("icebergTooltipStack");
+			tooltipStackField.setAccessible(true);
+
+			$setTooltipStack = (graphics, stack) ->
+			{
+				try
+				{
+					tooltipStackField.set(graphics, stack);
+				}
+				catch (ReflectiveOperationException roe)
+				{
+					throw new AssertionError(roe);
+				}
+			};
+		}
+		catch (ReflectiveOperationException | SecurityException e)
+		{
+			Loader.LOGGER.error(ExceptionUtils.getStackTrace(e));
+		}
+
+		setTooltipStack = $setTooltipStack;
+	}
+
 	@Inject(method = "renderTooltipInner(Lnet/minecraft/client/gui/screens/Screen;Lnet/minecraft/client/gui/GuiGraphics;Lme/shedaniel/rei/api/client/gui/widgets/Tooltip;II)V",
 			at = @At(value = "HEAD"), require = 0)
 	private void setHoverStack(Screen screen, GuiGraphics graphics, Tooltip tooltip, int mouseX, int mouseY, CallbackInfo info)
@@ -34,17 +67,7 @@ public class RoughlyEnoughItemsScreenOverlayImplFabricMixin
 		EntryStack<?> entryStack = tooltip.getContextStack();
 		ItemStack itemStack = entryStack.getType() == VanillaEntryTypes.ITEM ? entryStack.castValue() : ItemStack.EMPTY;
 
-		try
-		{
-			Field tooltipStackField = GuiGraphics.class.getDeclaredField("tooltipStack");
-			tooltipStackField.setAccessible(true);
-
-			tooltipStackField.set(graphics, itemStack);
-		}
-		catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e)
-		{
-			Loader.LOGGER.error(ExceptionUtils.getStackTrace(e));
-		}
+		setTooltipStack.accept(graphics, itemStack);
 	}
 
 	@Inject(method = "renderTooltipInner(Lnet/minecraft/client/gui/screens/Screen;Lnet/minecraft/client/gui/GuiGraphics;Lme/shedaniel/rei/api/client/gui/widgets/Tooltip;II)V",
