@@ -1,25 +1,29 @@
 plugins {
-	id 'fabric-loom' version '0.12-SNAPSHOT'
+	id 'fabric-loom' version '1.4.+'
 	id 'maven-publish'
 }
 
-sourceCompatibility = JavaVersion.VERSION_17
-targetCompatibility = JavaVersion.VERSION_17
+java {
+	sourceCompatibility = JavaVersion.VERSION_17
+	targetCompatibility = JavaVersion.VERSION_17
+}
 
-archivesBaseName = project.name + '-' + project.mcVersion + '-fabric'
-
-sourceSets.main.java.srcDirs += 'java'
-sourceSets.main.resources.srcDirs += 'resources'
+base {
+	archivesName = project.name + '-' + project.mcVersion + '-fabric'
+}
 
 repositories {
 	maven {
-		name = "CurseMaven"
-		url "https://www.cursemaven.com"
+		name = "Modrinth"
+		url = uri("https://api.modrinth.com/maven/")
 	}
-
 	maven {
 		name = "Fuzs Mod Resources"
 		url = "https://raw.githubusercontent.com/Fuzss/modresources/main/maven/"
+	}
+	maven {
+		name = "shedaniel"
+		url = uri("https://maven.shedaniel.me")
 	}
 }
 
@@ -30,9 +34,11 @@ dependencies {
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabricVersion}"
 
 	modImplementation "fuzs.forgeconfigapiport:forgeconfigapiport-fabric:8.0.0"
-	modImplementation files("libs/Iceberg-1.20.1-fabric-1.1.10.jar")
-	modImplementation files("libs/Prism-1.20.1-fabric-1.0.4.jar")
-	modImplementation "curse.maven:roughlyenoughitems-310111:4622769"
+	modImplementation "maven.modrinth:iceberg:1.1.18"
+	modImplementation "maven.modrinth:prism-lib:1.0.5"
+
+	// modCompileOnly "me.shedaniel:RoughlyEnoughItems-api-fabric:12.0.626"
+	modImplementation "me.shedaniel:RoughlyEnoughItems-fabric:12.0.626"
 }
 
 loom {
