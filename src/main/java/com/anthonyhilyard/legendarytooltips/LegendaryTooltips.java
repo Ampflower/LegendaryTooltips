@@ -55,8 +55,6 @@ public class LegendaryTooltips implements ClientModInitializer
 	public static final int NO_BORDER = -2;
 	public static final int NUM_FRAMES = 16;
 
-	private static ItemStack lastTooltipItem = null;
-
 	@Override
 	public void onInitializeClient()
 	{
@@ -216,23 +214,6 @@ public class LegendaryTooltips implements ClientModInitializer
 		float deltaTime = mc.getDeltaFrameTime() / 50.0f;
 		TooltipDecor.updateTimer(deltaTime);
 		ItemModelComponent.updateTimer(deltaTime);
-
-		if (mc.screen != null)
-		{
-			if (mc.screen instanceof AbstractContainerScreen<?> containerScreen)
-			{
-				if (containerScreen.hoveredSlot != null &&
-					containerScreen.hoveredSlot.hasItem())
-				{
-					ItemStack item = containerScreen.hoveredSlot.getItem();
-					if (lastTooltipItem != item)
-					{
-						TooltipDecor.resetTimer();
-						lastTooltipItem = item;
-					}
-				}
-			}
-		}
 	}
 
 	public static ColorExtResult onTooltipColorEvent(ItemStack stack, GuiGraphics graphics, int x, int y, Font font, int backgroundStart, int backgroundEnd, int borderStart, int borderEnd, List<ClientTooltipComponent> components, boolean comparison, int index)
